@@ -1,0 +1,4 @@
+streamlit
+pandas
+numpy
+# Voeg hier andere benodigde pakketten toe
