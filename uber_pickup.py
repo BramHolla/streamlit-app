@@ -31,9 +31,14 @@ def check_omloopplanning(omloop_df, dienst_df):
         
         for _, dienst_row in dienst_rows.iterrows():
             if pd.isna(row['starttijd']):
+                st.warning(f"Skipping row {idx} because starttijd is NaT")
                 continue
             
-            vertrektijd = pd.to_datetime(f"{row['starttijd'].date()} {dienst_row['vertrektijd'].strip()}")
+            try:
+                vertrektijd = pd.to_datetime(f"{row['starttijd'].date()} {dienst_row['vertrektijd'].strip()}")
+            except Exception as e:
+                st.error(f"Error processing starttijd for row {idx}: {e}")
+                continue
             
             if vertrektijd == row['starttijd']:
                 omloop_df.at[idx, 'correct'] = True
