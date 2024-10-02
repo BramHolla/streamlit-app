@@ -109,13 +109,13 @@ if not_found_count > 0:
     st.dataframe(not_found_rows[['startlocatie', 'eindlocatie', 'vertrektijd', 'buslijn']])
 
 # Interactieve tabellen tonen
-st.subheader('Omloopplanning Data (Eerste 5 rijen)')
-st.dataframe(df_omloopplanning.head())
+# st.subheader('Omloopplanning Data (Eerste 5 rijen)')
+# st.dataframe(df_omloopplanning.head())
 
-st.subheader('Dienstregeling Data (Eerste 5 rijen)')
-st.dataframe(df_dienstregeling.head())
+# st.subheader('Dienstregeling Data (Eerste 5 rijen)')
+# st.dataframe(df_dienstregeling.head())
 
 # Resultaten van nieuwe berekeningen weergeven
 st.subheader('Berekeningsresultaten')
 st.write("Energieverbruik en duur van elke dienst:")
-st.dataframe(df_omloopplanning[['starttijd', 'eindtijd', 'duur_uren', 'energieverbruik', 'gebruikt_kW', 'omloop nummer']])
+st.dataframe(df_omloopplanning[['starttijd', 'eindtijd', 'duur_uren', 'energieverbruik', 'gebruikt_kW', 'omloop nummer']].head())
