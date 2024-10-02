@@ -1,17 +1,20 @@
+# Zorg ervoor dat de juiste bibliotheken zijn geïmporteerd
 import streamlit as st
 import pandas as pd
-import numpy as np
-import openpyxl
 import warnings
+import openpyxl
 
 # Waarschuwingen negeren
 warnings.filterwarnings('ignore')
 
-# Functie om data in te laden
 def load_data(uploaded_file_1, uploaded_file_2):
     # Lees de geüploade bestanden in DataFrames
     df_omloopplanning = pd.read_excel(uploaded_file_1, engine='openpyxl')
     df_dienstregeling = pd.read_excel(uploaded_file_2, engine='openpyxl')
+
+    # Zorg ervoor dat 'starttijd' kolom datetime is
+    df_omloopplanning['starttijd'] = pd.to_datetime(df_omloopplanning['starttijd'], errors='coerce')
+
     return df_omloopplanning, df_dienstregeling
 
 def check_omloopplanning(omloop_df, dienst_df):
@@ -22,7 +25,11 @@ def check_omloopplanning(omloop_df, dienst_df):
     dienst_ritten_omloop = omloop_df[omloop_df['activiteit'] == 'dienst rit']
     
     for idx, row in dienst_ritten_omloop.iterrows():
-        # Filter voor de overeenkomstige rijen in de dienstregeling
+        # Skip als starttijd NaT is
+        if pd.isna(row['starttijd']):
+            continue
+        
+        # Filter voor overeenkomstige rijen in de dienstregeling
         dienst_rows = dienst_df[
             (dienst_df['startlocatie'] == row['startlocatie']) &
             (dienst_df['eindlocatie'] == row['eindlocatie']) &
@@ -30,16 +37,18 @@ def check_omloopplanning(omloop_df, dienst_df):
         ]
         
         for _, dienst_row in dienst_rows.iterrows():
-            # Maak een vertrektijd datetime object
-            if pd.isna(row['starttijd']):
+            try:
+                # Maak een vertrektijd datetime object
+                vertrektijd = pd.to_datetime(f"{row['starttijd'].date()} {dienst_row['vertrektijd'].strip()}")
+                
+                # Controleer of de starttijd overeenkomt met de dienstregeling
+                if vertrektijd == row['starttijd']:
+                    omloop_df.at[idx, 'correct'] = True
+                    break
+            except Exception as e:
+                # Optioneel: print of log de fout voor verdere analyse
+                print(f"Fout in rij {idx}: {e}")
                 continue
-            
-            vertrektijd = pd.to_datetime(f"{row['starttijd'].date()} {dienst_row['vertrektijd'].strip()}")
-            
-            # Controleer of de starttijd overeenkomt met de dienstregeling
-            if vertrektijd == row['starttijd']:
-                omloop_df.at[idx, 'correct'] = True
-                break
 
     # Controleer of alle ritten in de dienstregeling aanwezig zijn in de omloopplanning
     dienst_df['found_in_omloop'] = False
