@@ -73,10 +73,21 @@ st.markdown(
 
 st.header('Omloopplanning')
 st.markdown('<div class="dataframe-container">', unsafe_allow_html=True)
-st.dataframe(df_omloopplanning)
+st.dataframe(df_omloopplanning, use_container_width=True)
 st.markdown('</div>', unsafe_allow_html=True)
 
 st.header('Dienstregeling')
 st.markdown('<div class="dataframe-container">', unsafe_allow_html=True)
-st.dataframe(df_dienstregeling)
+st.dataframe(df_dienstregeling, use_container_width=True)
 st.markdown('</div>', unsafe_allow_html=True)
+
+# Deel 1: Resultaten van omloopplanning controleren
+st.subheader('Resultaten van Omloopplanning Controle')
+filtered_df = df_omloopplanning[df_omloopplanning['activiteit'] == 'dienst rit']
+false_count = filtered_df['correct'].value_counts().get(False, 0)
+st.write(f"Aantal onjuiste dienstritten in omloopplanning: {false_count}")
+
+if false_count > 0:
+    false_rows = filtered_df[filtered_df['correct'] == False]
+    st.write("Onjuiste dienstritten in omloopplanning:")
+    st.dataframe(false_rows[['startlocatie', 'eindlocatie', 'starttijd', 'eindtijd', 'buslijn', 'correct']], use_container_width=True)
