@@ -103,6 +103,49 @@ data = {
 
 df_battery = pd.DataFrame(data)
 
+# Initialiseren van de kolommen voor SOC
+df_omloopplanning['SOC_beginrit'] = 0.0
+df_omloopplanning['SOC_eindrit'] = 0.0
+
+# Berekenen van SOC_beginrit en SOC_eindrit per rit
+huidige_omloop = None
+huidige_SOC = SOC_ochtend
+
+for index, row in df_omloopplanning.iterrows():
+    if row['omloop nummer'] != huidige_omloop:
+        huidige_omloop = row['omloop nummer']
+        huidige_SOC = SOC_ochtend
+    
+    # SOC_beginrit instellen
+    df_omloopplanning.at[index, 'SOC_beginrit'] = huidige_SOC
+    
+    # SOC_eindrit berekenen
+    huidige_SOC -= row['gebruikt_kW']
+    df_omloopplanning.at[index, 'SOC_eindrit'] = huidige_SOC
+
+    # Controle of nodig is
+    if huidige_SOC < SOC_minimum:
+        st.warning(f"Waarschuwing: SOC onder de minimum veiligheidsmarge voor omloop nummer {huidige_omloop} bij index {index}.")
+
+# Toevoegen van nieuwe kolom die aangeeft of SOC_eindrit boven SOC_minimum is
+df_omloopplanning['SOC_above_min'] = df_omloopplanning['SOC_eindrit'] > SOC_minimum
+
+# Berekenen van de laagste SOC_eindrit per omloopnummer
+min_SOC_per_omloopnummer = df_omloopplanning.groupby('omloop nummer')['SOC_eindrit'].min().reset_index()
+min_SOC_per_omloopnummer.columns = ['omloop nummer', 'min_SOC_eindrit']
+
+# Haal de unieke waarden uit de kolom 'activiteit'
+unieke_waarden_activiteit = df_omloopplanning['activiteit'].unique()
+
+# Filter de rijen waarbij 'activiteit' gelijk is aan 'opladen'
+opladen_df = df_omloopplanning[df_omloopplanning['activiteit'] == 'opladen']
+
+if opladen_df.empty:
+    opladen_message = "Geen rijen gevonden waarbij de 'activiteit' gelijk is aan 'opladen'."
+else:
+    # Voeg een nieuwe kolom toe die aangeeft of de 'duur_minuten' groter is dan 15
+    opladen_df['lang_genoeg_opgeladen'] = opladen_df['duur_minuten'] > 15
+
 # Titel van de Streamlit App
 st.title('Omloopplanning Controle Systeem')
 
@@ -127,13 +170,6 @@ if not_found_count > 0:
     st.subheader("Dienstritten in dienstregeling die niet in de omloopplanning zijn gevonden:")
     st.dataframe(not_found_rows[['startlocatie', 'eindlocatie', 'vertrektijd', 'buslijn']])
 
-# Interactieve tabellen tonen
-# st.subheader('Omloopplanning Data (Eerste 5 rijen)')
-# st.dataframe(df_omloopplanning.head())
-
-# st.subheader('Dienstregeling Data (Eerste 5 rijen)')
-# st.dataframe(df_dienstregeling.head())
-
 # Resultaten van nieuwe berekeningen weergeven
 st.subheader('Berekeningsresultaten')
 st.write("Energieverbruik en duur van elke dienst:")
@@ -142,3 +178,30 @@ st.dataframe(df_omloopplanning[['starttijd', 'eindtijd', 'duur_uren', 'energieve
 # Batterijparameters weergeven
 st.subheader('Batterijparameters en SOC')
 st.dataframe(df_battery)
+
+# SOC en veiligheid
+st.subheader('SOC Berekeningen')
+st.write("Staat van de batterijlading bij het begin en het einde van elke rit:")
+st.dataframe(df_omloopplanning[['omloop nummer', 'starttijd', 'eindtijd', 'duur_uren', 'energieverbruik', 'gebruikt_kW', 'SOC_beginrit', 'SOC_eindrit', 'SOC_above_min']].head())
+
+# Laagste SOC_eindrit per omloopnummer
+st.subheader('Laagste SOC_eindrit per Omloopnummer')
+st.dataframe(min_SOC_per_omloopnummer)
+
+# Unieke waarden van activiteit
+st.subheader('Unieke Waarden van Activiteit')
+st.write(", ".join(unieke_waarden_activiteit))
+
+# Opladen activiteit
+st.subheader('Opladen Activiteit')
+if opladen_df.empty:
+    st.write(opladen_message)
+else:
+    st.write("Rijen waarbij de 'activiteit' gelijk is aan 'opladen':")
+    st.dataframe(opladen_df[['activiteit', 'energieverbruik', 'duur_minuten', 'SOC_above_min', 'lang_genoeg_opgeladen']])
+
+    # Filter de rijen waarbij 'lang_genoeg_opgeladen' False is
+    niet_lang_genoeg_opgeladen_df = opladen_df[opladen_df['lang_genoeg_opgeladen'] == False]
+    
+    st.write("Rijen waarin 'lang_genoeg_opgeladen' False is:")
+    st.dataframe(niet_lang_genoeg_opgeladen_df[['activiteit', 'energieverbruik', 'duur_minuten', 'SOC_above_min', 'lang_genoeg_opgeladen']])
