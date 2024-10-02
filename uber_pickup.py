@@ -1,6 +1,6 @@
 # Importeren van benodigde libraries
+import streamlit as st
 import pandas as pd
-from IPython.display import display
 import warnings
 
 # Waarschuwingen negeren
@@ -97,7 +97,7 @@ if not_found_count > 0:
     not_found_rows = df_dienstregeling[df_dienstregeling['found_in_omloop'] == False]
     st.subheader("Dienstritten in dienstregeling die niet in de omloopplanning zijn gevonden:")
     st.dataframe(not_found_rows[['startlocatie', 'eindlocatie', 'vertrektijd', 'buslijn']])
-    
+
 # Interactieve tabellen tonen
 st.subheader('Omloopplanning Data (Eerste 5 rijen)')
 st.dataframe(df_omloopplanning.head())
