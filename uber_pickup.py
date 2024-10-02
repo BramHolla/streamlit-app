@@ -58,8 +58,25 @@ df_omloopplanning['eindtijd'] = pd.to_datetime(df_omloopplanning['eindtijd datum
 
 df_omloopplanning, df_dienstregeling = check_omloopplanning(df_omloopplanning, df_dienstregeling)
 
+# Gebruik CSS om de totale breedte van de DataFrames aan te passen
+st.markdown(
+    """
+    <style>
+    .dataframe-container {
+        display: block;
+        overflow-x: auto;
+        width: 100%;
+    }
+    </style>
+    """, unsafe_allow_html=True
+)
+
 st.header('Omloopplanning')
-st.dataframe(df_omloopplanning, use_container_width=True)
+st.markdown('<div class="dataframe-container">', unsafe_allow_html=True)
+st.dataframe(df_omloopplanning)
+st.markdown('</div>', unsafe_allow_html=True)
 
 st.header('Dienstregeling')
-st.dataframe(df_dienstregeling, use_container_width=True)
+st.markdown('<div class="dataframe-container">', unsafe_allow_html=True)
+st.dataframe(df_dienstregeling)
+st.markdown('</div>', unsafe_allow_html=True)
