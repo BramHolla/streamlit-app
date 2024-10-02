@@ -59,7 +59,7 @@ df_omloopplanning['eindtijd'] = pd.to_datetime(df_omloopplanning['eindtijd datum
 df_omloopplanning, df_dienstregeling = check_omloopplanning(df_omloopplanning, df_dienstregeling)
 
 st.header('Omloopplanning')
-st.dataframe(df_omloopplanning)
+st.dataframe(df_omloopplanning, use_container_width=True)
 
 st.header('Dienstregeling')
-st.dataframe(df_dienstregeling)
+st.dataframe(df_dienstregeling, use_container_width=True)
