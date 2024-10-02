@@ -8,16 +8,13 @@ warnings.filterwarnings('ignore')
 
 # Functie om data in te laden
 def load_data():
-    # Voeg een bestandsuploader toe voor de Excel-bestanden
-    omloop_file = st.file_uploader("Upload Omloopplanning Excel", type=["xlsx"])
-    dienst_file = st.file_uploader("Upload Dienstregeling Excel", type=["xlsx"])
+    # Hardcode de bestandslocaties
+    omloop_file = 'omloopplanning.xlsx'
+    dienst_file = 'Connexxion data - 2024-2025.xlsx'
     
-    if omloop_file and dienst_file:
-        df_omloopplanning = pd.read_excel(omloop_file, engine='openpyxl')
-        df_dienstregeling = pd.read_excel(dienst_file, engine='openpyxl')
-        return df_omloopplanning, df_dienstregeling
-    else:
-        return None, None
+    df_omloopplanning = pd.read_excel(omloop_file, engine='openpyxl')
+    df_dienstregeling = pd.read_excel(dienst_file, engine='openpyxl')
+    return df_omloopplanning, df_dienstregeling
 
 def check_omloopplanning(omloop_df, dienst_df):
     omloop_df['correct'] = False
@@ -75,7 +72,7 @@ def main():
         st.subheader("Dienstregeling Resultaten")
         st.dataframe(dienst_result)
     else:
-        st.info("Voeg beide Excel-bestanden toe om te beginnen.")
+        st.info("Zorg ervoor dat de bestanden correct zijn ingeladen.")
 
 if __name__ == "__main__":
     main()
