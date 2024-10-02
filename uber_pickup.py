@@ -62,8 +62,6 @@ def check_omloopplanning(omloop_df, dienst_df):
 
     return omloop_df, dienst_df
 
-#############################################
-
 # Inladen van data
 df_omloopplanning, df_dienstregeling = load_data()
 
@@ -73,6 +71,18 @@ df_omloopplanning['eindtijd'] = pd.to_datetime(df_omloopplanning['eindtijd datum
 
 # Voer de controle uit
 df_omloopplanning, df_dienstregeling = check_omloopplanning(df_omloopplanning, df_dienstregeling)
+
+# Nieuwe kolom 'duur' toevoegen die het verschil tussen eindtijd en starttijd aangeeft
+df_omloopplanning['duur'] = df_omloopplanning['eindtijd'] - df_omloopplanning['starttijd']
+
+# De kolom 'duur' converteren naar minuten
+df_omloopplanning['duur_minuten'] = df_omloopplanning['duur'].dt.total_seconds() / 60
+
+# De kolom 'duur_minuten' converteren naar uren
+df_omloopplanning['duur_uren'] = df_omloopplanning['duur_minuten'] / 60
+
+# Totale gebruikte kilowatturen (kWh) berekenen en opslaan in een nieuwe kolom 'gebruikt_kW'
+df_omloopplanning['gebruikt_kW'] = df_omloopplanning['duur_uren'] * df_omloopplanning['energieverbruik']
 
 # Titel van de Streamlit App
 st.title('Omloopplanning Controle Systeem')
@@ -104,3 +114,8 @@ st.dataframe(df_omloopplanning.head())
 
 st.subheader('Dienstregeling Data (Eerste 5 rijen)')
 st.dataframe(df_dienstregeling.head())
+
+# Resultaten van nieuwe berekeningen weergeven
+st.subheader('Berekeningsresultaten')
+st.write("Energieverbruik en duur van elke dienst:")
+st.dataframe(df_omloopplanning[['starttijd', 'eindtijd', 'duur_uren', 'energieverbruik', 'gebruikt_kW', 'omloop nummer']])
