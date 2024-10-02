@@ -71,9 +71,6 @@ st.markdown(
     """, unsafe_allow_html=True
 )
 
-import streamlit as st
-import pandas as pd
-
 # Veronderstel dat df_omloopplanning al bestaat. Hier wordt aangenomen dat deze dataframe beschikbaar is.
 # df_omloopplanning = ...
 
