@@ -84,6 +84,25 @@ df_omloopplanning['duur_uren'] = df_omloopplanning['duur_minuten'] / 60
 # Totale gebruikte kilowatturen (kWh) berekenen en opslaan in een nieuwe kolom 'gebruikt_kW'
 df_omloopplanning['gebruikt_kW'] = df_omloopplanning['duur_uren'] * df_omloopplanning['energieverbruik']
 
+# Berekeningen voor de batterij en SOC
+max_batt_capa = 300  # kW
+SOC_start = 0.9  # factor
+SOC_min = 0.1  # factor
+batterijslijtage = 0.85  # Afhankelijk van de leeftijd van de bus is dat zo’n 85%-95% van de maximale capaciteit 
+SOH = max_batt_capa * batterijslijtage  # De SOH is de maximale capaciteit van een specifieke bus
+
+SOC_ochtend = SOH * SOC_start  # De SOC geeft aan hoeveel procent de bus nog geladen is. 100% is daarbij gelijk aan de SOH van de bus.
+SOC_minimum = SOH * SOC_min  # De veiligheidsmarge van 10% heeft ook betrekking op de SOH
+
+# DataFrame maken voor batterijparameters
+data = {
+    'Parameter': ['Max Batterij Capaciteit', 'SOC Start', 'SOC Minimum', 'Batterij Slijtage', 'SOH', 'SOC Ochtend', 'SOC Minimum'],
+    'Waarde': [max_batt_capa, SOC_start, SOC_min, batterijslijtage, SOH, SOC_ochtend, SOC_minimum],
+    'Eenheid': ['kW', 'Factor', 'Factor', 'Factor', 'kW (MBC * BS)', 'kW (SOH * SOC S)', 'kW (SOH * SOC M)']
+}
+
+df_battery = pd.DataFrame(data)
+
 # Titel van de Streamlit App
 st.title('Omloopplanning Controle Systeem')
 
@@ -119,3 +138,7 @@ if not_found_count > 0:
 st.subheader('Berekeningsresultaten')
 st.write("Energieverbruik en duur van elke dienst:")
 st.dataframe(df_omloopplanning[['starttijd', 'eindtijd', 'duur_uren', 'energieverbruik', 'gebruikt_kW', 'omloop nummer']].head())
+
+# Batterijparameters weergeven
+st.subheader('Batterijparameters en SOC')
+st.dataframe(df_battery)
